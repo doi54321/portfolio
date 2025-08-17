@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="en">
+<head>
+     <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Portfolio</title>
+  <meta name="description" content="A clean, single-file portfolio powered by vanilla JavaScript." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #0f1220;
+      --surface: #151a2e;
+      --surface-2: #1b2140;
+      --text: #e8ecf3;
+      --muted: #9aa3b2;
+      --accent: #7c5cff;
+      --accent-2: #4ad6ff;
+      --ok: #26d07c;
+      --warn: #f7b500;
+      --danger: #ff5c7a;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 20px;
+    }
+    :root.light {
+      --bg: #f6f7fb;
+      --surface: #ffffff;
+      --surface-2: #eef1f8;
+      --text: #0f1220;
+      --muted: #5a6270;
+      --accent: #5b42ff;
+      --accent-2: #0aa0c8;
+      --ok: #0fb56c;
+      --warn: #d49b00;
+      --danger: #e04460;
+      --shadow: 0 12px 35px rgba(0,0,0,.08);
+    }
+    * { box-sizing: border-box }
+    html, body { height: 100% }
+    body {
+      margin: 0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Helvetica Neue", sans-serif;
+      background: radial-gradient(1200px 600px at 10% -10%, rgba(124,92,255,.15), transparent 60%),
+                  radial-gradient(800px 500px at 110% 20%, rgba(74,214,255,.12), transparent 60%),
+                  var(--bg);
+      color: var(--text); line-height: 1.6;
+    }
+    a { color: inherit; text-decoration: none }
+    img { display: block; max-width: 100%; }
+    .container { width: min(1100px, 92%); margin: 0 auto }
+    .shadow { box-shadow: var(--shadow) }
+    .card { background: linear-gradient(180deg, var(--surface), var(--surface-2)); border-radius: var(--radius); border: 1px solid rgba(255,255,255,.06) }
+
+    /* Header */
+    header {
+      position: sticky; top: 0; z-index: 40; backdrop-filter: saturate(1.2) blur(8px);
+      background: color-mix(in oklab, var(--bg) 86%, transparent);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .nav { display: flex; align-items: center; justify-content: space-between; padding: 14px 0 }
+    .brand { display: flex; gap: 10px; align-items: center; font-weight: 800; letter-spacing: .3px }
+    .brand .logo { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 12px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; font-weight: 900 }
+    .nav a { opacity: .85 }
+    .nav a:hover { opacity: 1 }
+    .nav-links { display: flex; gap: 18px; align-items: center }
+    .theme-toggle { border: 1px solid rgba(255,255,255,.12); background: var(--surface); border-radius: 999px; padding: 8px 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px }
+    .theme-toggle span { font-size: 14px; color: var(--muted) }
+
+    /* Hero */
+    .hero { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; align-items: center; padding: 48px 0 28px }
+    .badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px dashed rgba(255,255,255,.15); border-radius: 999px; font-size: 14px; color: var(--muted) }
+    h1 { font-size: clamp(38px, 5vw, 58px); line-height: 1.05; margin: 14px 0 14px }
+    .lead { font-size: 18px; color: var(--muted) }
+    .cta { margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap }
+    .btn { padding: 12px 18px; border-radius: 12px; font-weight: 600; border: 1px solid rgba(255,255,255,.12); background: var(--surface); cursor: pointer }
+    .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); border: none; color: #fff }
+    .btn:hover { transform: translateY(-1px) }
+    .hero-visual { position: relative }
+    .hero-blob { position: absolute; inset: 0; z-index: -1; filter: blur(60px); opacity: .5; background: radial-gradient(400px 260px at 70% 30%, var(--accent), transparent 60%), radial-gradient(300px 220px at 30% 70%, var(--accent-2), transparent 60%) }
+    .hero-card { padding: 22px; display: grid; grid-template-columns: 64px 1fr; gap: 16px; align-items: center }
+    .hero-avatar { width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(135deg, #ffd166, #ff6b6b); border: 2px solid rgba(255,255,255,.5) }
+
+    /* Sections */
+    section { padding: 60px 0 }
+    .section-title { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 22px }
+    .section-title h2 { font-size: clamp(26px, 3vw, 34px); margin: 0 }
+    .section-title p { color: var(--muted); margin: 0 }
+
+    /* Skills */
+    .skills { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px }
+    .skill { padding: 18px }
+    .meter { height: 10px; background: rgba(255,255,255,.08); border-radius: 999px; overflow: hidden; margin-top: 8px }
+    .meter > span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .8s ease }
+
+    /* Projects */
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px }
+    .chip { padding: 8px 12px; border-radius: 999px; background: var(--surface); border: 1px solid rgba(255,255,255,.1); cursor: pointer; font-size: 14px }
+    .chip.active { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; border: none }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px }
+    .project { overflow: hidden; position: relative }
+    .project .body { padding: 14px 16px 16px }
+    .project h3 { margin: 0 0 6px }
+    .tags { display: flex; gap: 8px; flex-wrap: wrap; color: var(--muted); font-size: 13px }
+    .project img { aspect-ratio: 16/10; width: 100%; object-fit: cover }
+    .project .overlay { position: absolute; inset: 0; background: linear-gradient( to bottom, rgba(0,0,0,0.0), rgba(0,0,0,0.45) ); opacity: 0; transition: opacity .25s ease }
+    .project:hover .overlay { opacity: 1 }
+    .project .quick { position: absolute; bottom: 10px; left: 10px; display: flex; gap: 8px }
+    .icon-btn { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; border: 1px solid rgba(255,255,255,.15); background: color-mix(in oklab, var(--surface) 60%, transparent); cursor: pointer }
+
+    /* Testimonials */
+    .carousel { position: relative }
+    .slides { display: flex; gap: 16px; overflow: hidden }
+    .slide { min-width: calc(50% - 8px); padding: 18px }
+    .dots { display: flex; gap: 8px; justify-content: center; margin-top: 12px }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.25); cursor: pointer }
+    .dot.active { background: var(--accent) }
+
+    /* Contact */
+    form { display: grid; gap: 12px; grid-template-columns: 1fr 1fr }
+    form .full { grid-column: 1/-1 }
+    label { font-size: 14px; color: var(--muted) }
+    input, textarea { width: 100%; padding: 12px 14px; background: var(--surface); border: 1px solid rgba(255,255,255,.1); border-radius: 12px; color: var(--text); font: inherit }
+    textarea { min-height: 140px; resize: vertical }
+    .form-row { display: grid; gap: 6px }
+    .error { color: var(--danger); font-size: 13px; display: none }
+    .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%) translateY(40px); background: var(--surface); border: 1px solid rgba(255,255,255,.12); padding: 12px 16px; border-radius: 12px; opacity: 0; transition: all .35s ease; z-index: 50 }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0) }
+
+    footer { padding: 36px 0; color: var(--muted); text-align: center }
+
+    /* === Responsive Fixes === */
+
+    /* Tablets & smaller laptops */
+    @media (max-width: 1024px) {
+      .hero {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 32px;
+      }
+      .hero-image {
+        margin: 0 auto;
+      }
+      .hero-card {
+        margin: 20px auto 0;
+        grid-template-columns: 1fr;
+        text-align: center;
+        justify-items: center;
+      }
+      .hero-card p {
+        text-align: center;
+      }
+    }
+
+    /* Tablets & large mobiles */
+    @media (max-width: 768px) {
+      .section-title {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      .skills {
+        grid-template-columns: 1fr;
+      }
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      .slides {
+        scroll-snap-type: x mandatory;
+        overflow-x: auto;
+      }
+      .slide {
+        min-width: 100%;
+        scroll-snap-align: start;
+      }
+      dialog#projectModal > div {
+        grid-template-columns: 1fr;
+        max-height: 90dvh;
+      }
+      dialog#projectModal img {
+        border-radius: 20px 20px 0 0 !important;
+        height: 200px !important;
+      }
+    }
+
+    /* Small mobile */
+    @media (max-width: 480px) {
+      body {
+        font-size: 15px;
+      }
+      h1 {
+        font-size: 28px;
+      }
+      .btn {
+        padding: 10px 14px;
+        font-size: 14px;
+      }
+      .nav .brand {
+        font-size: 14px;
+      }
+      .badge {
+        font-size: 12px;
+        padding: 6px 10px;
+      }
+      .hero-image img {
+        max-width: 180px;
+      }
+      form {
+        grid-template-columns: 1fr;
+      }
+      .section-title {
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <div class="brand">
+        <div class="logo">MJ</div>
+        <div>MyPortfolio</div>
+      </div>
+      <nav class="nav-links">
+        <a href="#about">About</a>
+        <a href="#skills">Skills</a>
+        <a href="#projects">Projects</a>
+        <a href="#contact">Contact</a>
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V4a1 1 0 0 1 1-1Zm0 14a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm8-5a1 1 0 0 1-1 1h-2a1 1 0 1 1 0-2h2a1 1 0 0 1 1 1ZM7 12a1 1 0 0 1-1 1H4a1 1 0 1 1 0-2h2a1 1 0 0 1 1 1Zm11.657-6.657a1 1 0 0 1 0 1.414l-1.414 1.414a1 1 0 0 1-1.414-1.414L16.243 5.343a1 1 0 0 1 1.414 0ZM8.171 15.657a1 1 0 0 1 0 1.414L6.757 18.485a1 1 0 0 1-1.414-1.414l1.414-1.414a1 1 0 0 1 1.414 0Zm10.314 2.828a1 1 0 0 1-1.414 0l-1.414-1.414a1 1 0 1 1 1.414-1.414l1.414 1.414a1 1 0 0 1 0 1.414ZM6.343 5.343a1 1 0 0 1 1.414 0L9.171 6.757A1 1 0 1 1 7.757 8.17L6.343 6.757a1 1 0 0 1 0-1.414Z" fill="currentColor"/></svg>
+          <span>Theme</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+ <!-- Hero -->
+<section class="hero d-flex align-items-center justify-content-between" id="home" style="padding-right: 5rem;">
+  <!-- Left Side (Text) -->
+  <div style="flex: 1;">
+    <span class="badge">👋 Hello! I’m <strong>Marlon A. Aberte Jr.</strong></span>
+    <h1>Front-End Developer & Problem-Solver</h1>
+    <p class="lead">
+      I build fast, accessible, and delightful web experiences. I love clean UI, helpful micro-interactions, and turning ideas into working products.
+    </p>
+    <div class="cta">
+      <a class="btn primary" href="#projects">View Projects</a>
+      <a class="btn" href="#contact">Hire Me</a>
+    </div>
+
+    <div class="card hero-card shadow mt-4 p-3 d-inline-flex align-items-start">
+      <div class="hero-avatar"></div>
+      <div>
+        <strong>Available for freelance</strong>
+        <p style="margin:6px 0 0; color:var(--muted)">Based in Anywhere • Remote friendly</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side (Image) -->
+  <div class="hero-image" style="flex: 0 0 auto; margin-left: auto;">
+    <img src="images/1755336028897.jpg" 
+         alt="Profile Picture" 
+         class="img-fluid rounded-circle shadow" 
+         style="max-width: 250px; display: block;">
+  </div>
+</section>
+
+    <!-- About -->
+    <section id="about">
+      <div class="section-title">
+        <h2>About</h2>
+        <p>Who I am and how I work</p>
+      </div>
+      <div class="card shadow" style="padding:22px; display:grid; grid-template-columns: 1.1fr 1fr; gap:18px">
+        <div>
+          <p>Hi! I’m a developer focused on building responsive interfaces with great UX. I value clarity, performance, and maintainability. I collaborate closely with designers and product teams, and I iterate fast.</p>
+          <ul style="margin: 12px 0 0; padding-left: 20px; color: var(--muted)">
+            <li>💡 Love solving UI/UX problems and polishing details</li>
+            <li>⚡ Performance‑first mindset (Core Web Vitals)</li>
+            <li>🤝 Strong communicator—async updates, clean docs</li>
+          </ul>
+        </div>
+        <div class="card shadow" style="padding:18px">
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px">
+            <div><small style="color:var(--muted)">Experience</small><div style="font-weight:700; font-size:20px">None</div></div>
+            <div><small style="color:var(--muted)">Projects</small><div style="font-weight:700; font-size:20px">10+</div></div>
+            <div><small style="color:var(--muted)">Clients</small><div style="font-weight:700; font-size:20px">3</div></div>
+            <div><small style="color:var(--muted)">Coffee</small><div style="font-weight:700; font-size:20px">∞</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Skills -->
+    <section id="skills">
+      <div class="section-title">
+        <h2>Skills</h2>
+        <p>Tools I use daily</p>
+      </div>
+      <div class="skills">
+        <div class="card skill shadow">
+          <div style="display:flex; justify-content:space-between; align-items:center">
+            <strong>HTML & CSS</strong><span>95%</span>
+          </div>
+          <div class="meter"><span style="--val:95%"></span></div>
+        </div>
+        <div class="card skill shadow">
+          <div style="display:flex; justify-content:space-between; align-items:center">
+            <strong>JavaScript (ES6+)</strong><span>90%</span>
+          </div>
+          <div class="meter"><span style="--val:90%"></span></div>
+        </div>
+        <div class="card skill shadow">
+          <div style="display:flex; justify-content:space-between; align-items:center">
+            <strong>Vue / React</strong><span>80%</span>
+          </div>
+          <div class="meter"><span style="--val:80%"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Projects -->
+    <section id="projects">
+      <div class="section-title">
+        <h2>Projects</h2>
+        <p>A few favorites</p>
+      </div>
+      <div class="filters">
+        <button class="chip active" data-filter="all">All</button>
+        <button class="chip" data-filter="web">Web</button>
+        <button class="chip" data-filter="mobile">Mobile</button>
+        <button class="chip" data-filter="ui">UI</button>
+      </div>
+      <div class="grid" id="projectGrid">
+        <!-- Project Card Template -->
+      </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section id="testimonials">
+      <div class="section-title">
+        <h2>Testimonials</h2>
+        <p>Kind words from clients</p>
+      </div>
+      <div class="carousel">
+        <div class="slides" id="slides"></div>
+        <div class="dots" id="dots"></div>
+      </div>
+    </section>
+
+    <!-- Contact -->
+    <section id="contact">
+      <div class="section-title">
+        <h2>Contact</h2>
+        <p>Let’s build something</p>
+      </div>
+      <form id="contactForm" class="card shadow" style="padding:18px">
+        <div class="form-row">
+          <label for="name">Name</label>
+          <input id="name" name="name" placeholder="Jane Doe" />
+          <div class="error" id="nameErr">Please enter your name</div>
+        </div>
+        <div class="form-row">
+          <label for="email">Email</label>
+          <input id="email" name="email" placeholder="jane@example.com" />
+          <div class="error" id="emailErr">Enter a valid email</div>
+        </div>
+        <div class="form-row full">
+          <label for="message">Message</label>
+          <textarea id="message" name="message" placeholder="Tell me about your project..."></textarea>
+          <div class="error" id="msgErr">Message must be at least 10 characters</div>
+        </div>
+        <div class="full" style="display:flex; gap:10px; justify-content:flex-end">
+          <button type="reset" class="btn">Clear</button>
+          <button type="submit" class="btn primary">Send</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">© <span id="year"></span> Your Name — All rights reserved.</div>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">Message sent! I’ll reply within 24 hours.</div>
+
+  <!-- Modal for Project Preview -->
+  <dialog id="projectModal" style="border:none; border-radius:20px; max-width: 920px; width:92%; padding:0; background: var(--surface); color: var(--text)">
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0; max-height: 80dvh">
+      <img id="modalImg" alt="Project screenshot" style="width:100%; height:100%; object-fit:cover; border-top-left-radius:20px; border-bottom-left-radius:20px" />
+      <div style="padding:22px; display:grid; gap:10px">
+        <div style="display:flex; justify-content:space-between; align-items:center">
+          <h3 id="modalTitle" style="margin:0"></h3>
+          <button id="modalClose" class="icon-btn" aria-label="Close">✕</button>
+        </div>
+        <p id="modalDesc" style="color:var(--muted)"></p>
+        <div id="modalTags" class="tags"></div>
+        <div style="margin-top:auto; display:flex; gap:10px; flex-wrap:wrap">
+          <a id="modalLive" class="btn primary" target="_blank">Live</a>
+          <a id="modalCode" class="btn" target="_blank">Code</a>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <button id="toTop" class="icon-btn shadow" aria-label="Back to top" style="position: fixed; right: 18px; bottom: 18px; opacity: 0; pointer-events: none; transition: .25s ease">↑</button>
+
+  <script>
+    // ===== Utility =====
+    const $ = (q, c=document) => c.querySelector(q);
+    const $$ = (q, c=document) => Array.from(c.querySelectorAll(q));
+
+    // ===== Theme Toggle =====
+    const themeToggle = $('#themeToggle');
+    const applyTheme = (isLight) => {
+      document.documentElement.classList.toggle('light', isLight);
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+      themeToggle.querySelector('span').textContent = isLight ? 'Light' : 'Dark';
+    };
+    applyTheme(localStorage.getItem('theme') === 'light');
+    themeToggle.addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('light')));
+
+    // ===== Smooth scroll for internal links =====
+    $$('a[href^="#"]').forEach(a => a.addEventListener('click', e => {
+      const id = a.getAttribute('href');
+      if (id.length > 1) {
+        e.preventDefault();
+        document.querySelector(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }));
+
+    // ===== Animate skill meters on view =====
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          $$('span', e.target).forEach(bar => bar.style.width = bar.style.getPropertyValue('--val'));
+        }
+      })
+    }, { threshold: .5 });
+    $$('#skills .meter').forEach(m => io.observe(m));
+
+    // ===== Projects Data =====
+    const projects = [
+      {
+        title: 'Travel Request System',
+        img: 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?q=80&w=1600&auto=format&fit=crop',
+        tags: ['web', 'php', 'mysql'],
+        desc: 'Multi-step approval workflow with PDF generation and real-time notifications.',
+        live: '#', code: '#'
+      },
+      {
+        title: 'Rice Vending Machine Dashboard',
+        img: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1600&auto=format&fit=crop',
+        tags: ['web', 'vue', 'iot'],
+        desc: 'Real-time Firebase dashboard for inventory, device health, and alerts.',
+        live: '#', code: '#'
+      },
+      {
+        title: 'Mobile Expense Tracker',
+        img: 'https://images.unsplash.com/photo-1553729459-efe14ef6055d?q=80&w=1600&auto=format&fit=crop',
+        tags: ['mobile', 'ui'],
+        desc: 'Cross-platform expense tracker with offline sync and biometric login.',
+        live: '#', code: '#'
+      },
+      {
+        title: 'Teacher Travel Scheduler',
+        img: 'https://images.unsplash.com/photo-1553877522-43269d4ea984?q=80&w=1600&auto=format&fit=crop',
+        tags: ['web', 'js'],
+        desc: 'Schedule optimization with role-based access and Google Maps integration.',
+        live: '#', code: '#'
+      },
+      {
+        title: 'ESP32 Sensor Monitor',
+        img: 'https://images.unsplash.com/photo-1495567720989-cebdbdd97913?q=80&w=1600&auto=format&fit=crop',
+        tags: ['web', 'iot'],
+        desc: 'Realtime charts & alerts from ESP32 devices using Firebase RTDB.',
+        live: '#', code: '#'
+      },
+      {
+        title: 'UI Component Library',
+        img: 'https://images.unsplash.com/photo-1526498460520-4c246339dccb?q=80&w=1600&auto=format&fit=crop',
+        tags: ['ui'],
+        desc: 'Accessible, themeable UI kit with tokens and docs.',
+        live: '#', code: '#'
+      }
+    ];
+
+    const grid = $('#projectGrid');
+    function renderProjects(filter = 'all') {
+      grid.innerHTML = '';
+      const filtered = projects.filter(p => filter === 'all' || p.tags.includes(filter));
+      filtered.forEach(p => {
+        const card = document.createElement('article');
+        card.className = 'card project shadow';
+        card.dataset.tags = p.tags.join(',');
+        card.innerHTML = `
+          <div class="overlay"></div>
+          <img src="${p.img}" alt="${p.title}" loading="lazy" />
+          <div class="body">
+            <h3>${p.title}</h3>
+            <div class="tags">${p.tags.map(t => `<span>#${t}</span>`).join(' ')}</div>
+          </div>
+          <div class="quick">
+            <button class="icon-btn" data-action="preview" title="Preview">👁️</button>
+            <a class="icon-btn" href="${p.code}" target="_blank" title="Code">{</a>
+          </div>
+        `;
+        card.querySelector('[data-action="preview"]').addEventListener('click', () => openModal(p));
+        grid.appendChild(card);
+      });
+    }
+    renderProjects();
+
+    $$('.chip').forEach(chip => chip.addEventListener('click', () => {
+      $$('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      renderProjects(chip.dataset.filter);
+    }));
+
+    // ===== Modal =====
+    const modal = $('#projectModal');
+    const openModal = (p) => {
+      $('#modalImg').src = p.img;
+      $('#modalTitle').textContent = p.title;
+      $('#modalDesc').textContent = p.desc;
+      $('#modalTags').innerHTML = p.tags.map(t => `<span>#${t}</span>`).join(' ');
+      $('#modalLive').href = p.live;
+      $('#modalCode').href = p.code;
+      modal.showModal();
+    };
+    $('#modalClose').addEventListener('click', () => modal.close());
+
+    // Close modal on backdrop click
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.close(); });
+
+    // ===== Testimonials =====
+    const testimonials = [
+      { name: 'Alex R.', text: 'Delivered ahead of schedule with pixel-perfect quality. Communication was excellent throughout.' },
+      { name: 'Priya K.', text: 'Great attention to detail and accessibility. Our metrics improved across the board.' },
+      { name: 'Diego S.', text: 'Fast, reliable, and thoughtful. Brought great ideas to the table.' },
+    ];
+    const slides = $('#slides');
+    const dots = $('#dots');
+    testimonials.forEach((t, i) => {
+      const s = document.createElement('div');
+      s.className = 'card slide shadow';
+      s.innerHTML = `<p style="color:var(--muted); margin:0">“${t.text}”</p><div style="margin-top:10px; font-weight:700">${t.name}</div>`;
+      slides.appendChild(s);
+      const d = document.createElement('button'); d.className = 'dot'; d.setAttribute('aria-label', `Go to slide ${i+1}`); dots.appendChild(d);
+    });
+    let idx = 0; const go = (i) => {
+      idx = (i + testimonials.length) % testimonials.length;
+      slides.scrollTo({ left: slides.clientWidth * idx, behavior: 'smooth' });
+      $$('.dot').forEach((d, j) => d.classList.toggle('active', j === idx));
+    };
+    dots.addEventListener('click', (e) => { if (e.target.classList.contains('dot')) go($$('.dot').indexOf(e.target)); });
+    window.addEventListener('resize', () => go(idx));
+    go(0);
+    setInterval(() => go(idx + 1), 6000);
+
+    // ===== Contact Form Validation =====
+    const form = $('#contactForm');
+    const toast = $('#toast');
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = $('#name').value.trim();
+      const email = $('#email').value.trim();
+      const msg = $('#message').value.trim();
+      let ok = true;
+      $('#nameErr').style.display = name ? 'none' : 'block'; ok = ok && !!name;
+      $('#emailErr').style.display = emailRe.test(email) ? 'none' : 'block'; ok = ok && emailRe.test(email);
+      $('#msgErr').style.display = msg.length >= 10 ? 'none' : 'block'; ok = ok && msg.length >= 10;
+      if (!ok) return;
+      // Fake submit
+      form.reset();
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2200);
+    });
+
+    // ===== Back to top =====
+    const toTop = $('#toTop');
+    window.addEventListener('scroll', () => {
+      const show = window.scrollY > 500;
+      toTop.style.opacity = show ? 1 : 0;
+      toTop.style.pointerEvents = show ? 'auto' : 'none';
+    });
+    toTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+    // ===== Year =====
+    $('#year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
